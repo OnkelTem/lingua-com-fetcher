@@ -1,9 +1,9 @@
 # Lingua.com premium lessons fetcher
 
-This respository contains a [Selenium](https://www.selenium.dev/) script which
+This repository contains a [Selenium](https://www.selenium.dev/) script that
 fetches lessons from the https://lingua.com/ website.
 
-Specifically it downloads:
+Specifically, it downloads:
 
 1. Lesson texts
 2. Lesson audio (for Premium users)
@@ -11,7 +11,7 @@ Specifically it downloads:
 
 ## Requirements
 
-You need to have the [Lingua.com premium access](https://lingua.com/premium/) to get things done.
+You need to have a [Lingua.com (premium) account](https://lingua.com/premium/) to get things done.
 
 ## Usage
 
@@ -27,12 +27,12 @@ Before running the script, you need to create the `.env` file.
 
 ```
 # Your Lingua.com username
-USERNAME=myuser
+USERNAME=username
 
 # Your Lingua.com password
-PASSWORD=mypassword
+PASSWORD=password
 
-# Language
+# Target language
 LANGUAGE=turkish
 
 # Output dir
@@ -41,7 +41,7 @@ OUTDIR=lessons
 
 Use `.env.example` as a template.
 
-Now that you're ready, run the script:
+After that, you can run the script as:
 
 ```
 $ npm run start
