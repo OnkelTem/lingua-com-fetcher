@@ -1,7 +1,6 @@
 {
   "name": "lingua-com-fetcher",
   "version": "0.1.0",
-  "private": true,
   "description": "Lessons fetcher for lingua.com",
   "keywords": [
     "lignua.com",
@@ -38,7 +37,6 @@
   "files": [
     "js/",
     "src/",
-    ".gitignore",
     ".prettierrc",
     "package.json",
     "tsconfig.json"

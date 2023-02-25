@@ -1,4 +1,4 @@
-# Lingua.com lessons fetcher
+# Lingua.com Lessons Fetcher
 
 This repository contains a [Selenium](https://www.selenium.dev/) script that
 fetches lessons from the https://lingua.com/ website.
@@ -11,13 +11,13 @@ Specifically, it downloads:
 
 ## Lessons Access
 
-This script can function in 3 modes:
+**Lignua.com** provides free and [premium](https://lingua.com/premium/) content.
 
-- anonymous
-- free (signed in)
-- premium (signed in)
+While the premium contains all lessons and audio, the free one is limited to a few lessons in each category, and mostly without audio.
 
-I didn't see any difference between anonymous and free content. Both can access the same limited set of lessons and almost without audio. With [premium](https://lingua.com/premium/) access, you can download everything.
+The free content is also available anonymously without logging in.
+
+This script can also act anonymously or with your account credentials. See [Providing Credentials](#providing-credentials) below for more info.
 
 ## Install
 
@@ -38,7 +38,7 @@ List available languages:
 ```
 $ lingua-com-fetcher ls
 
-Fetching language list… 🗹
+Fetching language list… ✓
 Found 16 languages:
 code: en, name: english
 code: es, name: spanish
@@ -56,9 +56,9 @@ For example, to fetch lessons for the Spanish language into `outdir` directory:
 ```
 $ lingua-com-fetcher fetch es outdir
 
-Fetching language list… 🗹
-Logging in as "username"… 🗹
-Discovering lessons for "Spanish"… 🗹
+Fetching language list… ✓
+Logging in as "username"… ✓
+Discovering lessons for "Spanish"… ✓
 Found sections:
   "Level A1" with 14 lessons
   "Level A2" with 30 lessons
@@ -66,8 +66,8 @@ Found sections:
   "Level B2" with 23 lessons
 Fetching lessons...
   Section: "Level A1"
-    Lesson "01":        TXT 🗹   PDF 🗹   MP3 🗹
-    Lesson "02":        TXT 🗹   PDF 🗹   MP3 🗹
+    Lesson "01":        TXT ✓   PDF ✓   MP3 ✓
+    Lesson "02":        TXT ✓   PDF ✓   MP3 ✓
 ...
 ```
 
@@ -125,5 +125,3 @@ Options:
       --dryRun   Don't write anything, only show what's gonna be done
                                                       [boolean] [default: false]
 ```
-
-## License

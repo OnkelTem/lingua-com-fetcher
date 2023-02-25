@@ -14,7 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Using Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
@@ -24,13 +24,18 @@ jobs:
         run: npm test
       - name: Building project
         run: npm run build
+      - name: Creating npm package for downloading
+        run: npm pack
       - name: Read package.json version
         run: echo "version=$(jq -r -c .version package.json)" >> $GITHUB_ENV
-      # - name: Publishing
-      #   run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Read package.json name
+        run: echo "name=$(jq -r -c .name package.json)" >> $GITHUB_ENV
+      - name: Publishing
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           body_path: ${{ github.workspace }}/docs/release-notes/${{env.version}}.md
+          files: ${{env.name}}-${{env.version}}.tgz
