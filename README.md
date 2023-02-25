@@ -1,98 +1,129 @@
-# Lingua.com premium lessons fetcher
+# Lingua.com lessons fetcher
 
-This respository contains a [Selenium](https://www.selenium.dev/) script which
+This repository contains a [Selenium](https://www.selenium.dev/) script that
 fetches lessons from the https://lingua.com/ website.
 
-Specifically it downloads:
+Specifically, it downloads:
 
 1. Lesson texts
-2. Lesson audio (for Premium users)
-3. Lesson PDF (if provided)
+2. Lesson audio files
+3. Lesson PDFs (with exercises)
 
-## Requirements
+## Lessons Access
 
-You need to have the [Lingua.com premium access](https://lingua.com/premium/) to get things done.
+This script can function in 3 modes:
+
+- anonymous
+- free (signed in)
+- premium (signed in)
+
+I didn't see any difference between anonymous and free content. Both can access the same limited set of lessons and almost without audio. With [premium](https://lingua.com/premium/) access, you can download everything.
+
+## Install
+
+```
+$ npm i -g lingua-com-fetcher
+```
+
+To update to the latest version:
+
+```
+$ npm i -g lingua-com-fetcher@latest
+```
 
 ## Usage
 
-Clone this repository and install dependencies:
+List available languages:
 
 ```
-$ git clone git@github.com:OnkelTem/lingua-com-fetcher.git
-$ cd lingua-com-fetcher
-$ npm i
+$ lingua-com-fetcher ls
+
+Fetching language list… 🗹
+Found 16 languages:
+code: en, name: english
+code: es, name: spanish
+...
 ```
 
-Before running the script, you need to create the `.env` file.
+Download lessons for a language:
 
 ```
-# Your Lingua.com username
-USERNAME=myuser
-
-# Your Lingua.com password
-PASSWORD=mypassword
-
-# Language
-LANGUAGE=turkish
-
-# Output dir
-OUTDIR=lessons
+$ lingua-com-fetcher fetch <lang> <path>
 ```
 
-Use `.env.example` as a template.
-
-Now that you're ready, run the script:
+For example, to fetch lessons for the Spanish language into `outdir` directory:
 
 ```
-$ npm run start
-```
+$ lingua-com-fetcher fetch es outdir
 
-Sample output:
-
-```
-Logging in to LINGUA.COM... 🗹
-Discovering lessons for "turkish" language... 🗹
+Fetching language list… 🗹
+Logging in as "username"… 🗹
+Discovering lessons for "Spanish"… 🗹
+Found sections:
+  "Level A1" with 14 lessons
+  "Level A2" with 30 lessons
+  "Level B1" with 45 lessons
+  "Level B2" with 23 lessons
 Fetching lessons...
- Section: Level A1
-  Getting lesson "01":  TXT 🗹   PDF 🗹   MP3 🗹
-  Getting lesson "02":  TXT 🗹   PDF 🗹   MP3 🗹
-  Getting lesson "03":  TXT 🗹   PDF 🗹   MP3 🗹
-  Getting lesson "04":  TXT 🗹   PDF 🗹   MP3 🗹
-  Getting lesson "05":  TXT 🗹   PDF 🗹   MP3 🗹
-  Getting lesson "06":  TXT 🗹   PDF 🗹   MP3 🗹
-  ...
+  Section: "Level A1"
+    Lesson "01":        TXT 🗹   PDF 🗹   MP3 🗹
+    Lesson "02":        TXT 🗹   PDF 🗹   MP3 🗹
+...
 ```
 
-And the corresponding file tree:
+## Providing Credentials
 
-```
-lessons/
-├── Level A1
-│   ├── 01 - Ailem ve Ben
-│   │   ├── 01 - Ailem ve Ben.mp3
-│   │   ├── 01 - Ailem ve Ben.pdf
-│   │   └── 01 - Ailem ve Ben.txt
-│   ├── 02 - Benim Odam
-│   │   ├── 02 - Benim Odam.mp3
-│   │   ├── 02 - Benim Odam.pdf
-│   │   └── 02 - Benim Odam.txt
-│   ├── 03 - Canım Ailem
-│   │   ├── 03 - Canım Ailem.mp3
-│   │   ├── 03 - Canım Ailem.pdf
-│   │   └── 03 - Canım Ailem.txt
-│   ├── 04 - Doğum Günü
-│   │   ├── 04 - Doğum Günü.mp3
-│   │   ├── 04 - Doğum Günü.pdf
-│   │   └── 04 - Doğum Günü.txt
-│   ├── 05 - Melis ve Kardeşi
-│   │   ├── 05 - Melis ve Kardeşi.mp3
-│   │   ├── 05 - Melis ve Kardeşi.pdf
-│   │   └── 05 - Melis ve Kardeşi.txt
-│   ├── 06 - Tren İstasyonu
-│   │   ├── 06 - Tren İstasyonu.mp3
-│   │   ├── 06 - Tren İstasyonu.pdf
-│   │   └── 06 - Tren İstasyonu.txt
+If you create a file called **lingua-com-secret.json**, it will be used to log you in:
 
+```json
+{
+  "username": "Your-Lingua-Com-Username",
+  "password": "Your-Lingua-Com-Password"
+}
 ```
 
-Happy Languages Learning!
+If placed in the current directory, it will be read automatically. You can also provide its path via the `--secret` option:
+
+```
+$ lingua-com-fetcher --secret path/to/your/secret.json fetch businessenglish outdir
+```
+
+## CLI reference
+
+`$ lingua-com-fetcher --help`:
+
+```
+lingua-com-fetcher <command>
+
+Commands:
+  lingua-com-fetcher ls                   Lists available languages.
+  lingua-com-fetcher fetch <lang> <path>  Fetches lessons for the <lang> into
+                                          <path>.
+
+Options:
+  --help     Show help                                                 [boolean]
+  --version  Show version number                                       [boolean]
+```
+
+`$ lingua-com-fetcher fetch --help`:
+
+```
+lingua-com-fetcher fetch <lang> <path>
+
+Fetches lessons for the <lang> into <path>.
+
+Positionals:
+  lang  Lessons language. Can be either two-letter code or language name as it's
+        shown by the `ls` command.                           [string] [required]
+  path  Lessons output directory.                            [string] [required]
+
+Options:
+      --help     Show help                                             [boolean]
+      --version  Show version number                                   [boolean]
+  -s, --secret   Path to the file with your Lingua.com credentials.
+                                    [string] [default: "lingua-com-secret.json"]
+      --dryRun   Don't write anything, only show what's gonna be done
+                                                      [boolean] [default: false]
+```
+
+## License
