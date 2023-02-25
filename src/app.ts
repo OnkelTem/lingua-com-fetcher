@@ -1,10 +1,13 @@
 import yargs from "yargs";
 import { OutOfSync } from "./errors";
+import { fetchLessons } from "./scripts/lessons.script";
+import { listLanguages } from "./scripts/languages.script";
 import { readCredentials } from "./services/credentials.service";
-import { fetchLessons } from "./services/fetcher.service";
-import { createLogger } from "./services/logger.service";
+import { createLogger, Logger } from "./services/logger.service";
+import { createWebDriver } from "./services/webdriver.service";
+import { error } from "selenium-webdriver";
 
-const DEFAULT_CREDENTIALS_FILEPATH = "credentials.json";
+const DEFAULT_CREDENTIALS_FILEPATH = "lingua-com-secret.json";
 
 export default function app(params: string[]) {
   return yargs(params)
@@ -19,32 +22,39 @@ export default function app(params: string[]) {
       process.exit(1);
     })
     .command(
-      "$0 <lang> <path>",
+      "ls",
+      "Lists available languages.",
+      (yargs) => yargs,
+      async (argv) => {
+        await runWithErrorHandling(createLogger(false), async (logger) => {
+          const driver = await createWebDriver(logger);
+          await listLanguages(driver, logger);
+          await driver.quit();
+        });
+      }
+    )
+    .command(
+      "fetch <lang> <path>",
       "Fetches lessons for the <lang> into <path>.",
       (yargs) =>
         yargs
           .positional("lang", {
-            description: "Lessons language",
+            description:
+              "Lessons language. Can be either two-letter code or language name as it's shown by the `ls` command.",
             type: "string",
             demandOption: true,
           })
           .positional("path", {
-            description: "Lessons output directory",
+            description: "Lessons output directory.",
             type: "string",
             demandOption: true,
           })
           .options({
-            credentials: {
-              alias: "c",
-              description: "Path to the credentials.json file",
+            secret: {
+              alias: "s",
+              description: "Path to the file with your Lingua.com credentials.",
               type: "string",
               default: DEFAULT_CREDENTIALS_FILEPATH,
-            },
-            debug: {
-              alias: "d",
-              description: "Output debugging information",
-              type: "boolean",
-              default: false,
             },
             dryRun: {
               description: "Don't write anything, only show what's gonna be done",
@@ -53,29 +63,36 @@ export default function app(params: string[]) {
             },
           }),
       async (argv) => {
-        const logger = createLogger(argv.debug);
-        try {
-          const credentials = await readCredentials(argv.credentials, logger);
-          await fetchLessons(
-            {
-              language: argv.lang,
-              outDirpath: argv.path,
-              credentials,
-              debug: argv.debug,
-            },
-            logger
-          );
-        } catch (e) {
-          if (e instanceof OutOfSync) {
-            logger.err(e.message);
-            logger.log(`This script should be updated to match the current version of the website.`);
-            logger.log("Please contact the developer.");
-          } else if (e instanceof Error) {
-            logger.err(e.message);
-          } else {
-            throw e;
-          }
-        }
+        const logger = createLogger(false);
+        await runWithErrorHandling(logger, async () => {
+          const driver = await createWebDriver(logger);
+          await fetchLessons({
+            driver,
+            langTerm: argv.lang,
+            outDirpath: argv.path,
+            secretFilepath: argv.secret,
+            logger,
+            dryRun: argv.dryRun,
+          });
+          await driver.quit();
+        });
       }
-    );
+    )
+    .strict();
+}
+
+async function runWithErrorHandling(logger: Logger, func: (logger: Logger) => any) {
+  try {
+    await func(logger);
+  } catch (e) {
+    if (e instanceof OutOfSync || e instanceof error.NoSuchElementError) {
+      logger.err(e.message);
+      logger.warn(`This script should be updated to match the current version of the website.`);
+      logger.warn("Please contact the developer.");
+    } else if (e instanceof Error) {
+      logger.err(e.message);
+    } else {
+      throw e;
+    }
+  }
 }
