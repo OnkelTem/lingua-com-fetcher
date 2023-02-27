@@ -35,11 +35,11 @@ jobs:
         with:
           name: ${{ env.name }}-${{ env.version }}
           path: ${{ env.name }}-${{ env.version }}.tgz
-      # - name: Publish
-      #   if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
-      #   run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish
+        if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Release
         if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
         uses: softprops/action-gh-release@v1

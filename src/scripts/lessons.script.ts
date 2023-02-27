@@ -5,11 +5,11 @@ import { writeFile } from "fs/promises";
 import path from "path";
 import { Logger } from "../services/logger.service";
 import { LoginError, OutOfSync } from "../errors";
-import { LINGUA_COM_BASE_URL } from "./const";
+import { Target, TargetsEnum, LINGUA_COM_BASE_URL, SPEED_BAN_DELAY } from "./const";
 import { getLanguages } from "./languages.script";
 import { Language } from "./types";
 import { readCredentials } from "../services/credentials.service";
-import { doneBox, errBox, premiumBox } from "./utils";
+import { doneBox, errBox, missedBox, premiumBox, skipBox } from "./utils";
 
 const IDENT = "  ";
 
@@ -18,6 +18,7 @@ type FetchLessonsProps = {
   langTerm: string;
   outDirpath: string;
   secretFilepath: string;
+  select: Target[];
   logger: Logger;
   dryRun: boolean;
 };
@@ -33,6 +34,7 @@ export async function fetchLessons({
   langTerm,
   outDirpath,
   secretFilepath,
+  select,
   logger,
   dryRun,
 }: FetchLessonsProps) {
@@ -42,7 +44,7 @@ export async function fetchLessons({
       warn("Credentials file not found, proceeding anonynously");
       return;
     }
-    info.raw(`Logging in as "${credentials.username}"…`);
+    info.raw(`Logging in as "${credentials.username}"… `);
     await driver.get(LINGUA_COM_BASE_URL);
     await delay(1000);
     await driver.findElement(By.css(".button.open-account")).click();
@@ -118,6 +120,7 @@ export async function fetchLessons({
           const title = `Lesson "${lesson.lessonNo}"`;
           info.raw(`${IDENT}${IDENT}${lesson.premium ? premiumBox(title) : title}:`);
           await getLesson(sectionName, lesson);
+          await delay(SPEED_BAN_DELAY);
         }
       }
     } finally {
@@ -140,47 +143,60 @@ export async function fetchLessons({
 
     !dryRun && mkdirSync(dirpath, { recursive: true });
 
-    info.raw(`\tTXT `);
-    const paras = await exercise.findElements(By.xpath("div[position() = 1]/p"));
-    let outText = title + "\n";
-    for (let p of paras) {
-      outText += "\n" + (await p.getText()) + "\n";
-    }
-    !dryRun && (await writeFile(path.join(dirpath, `${lessonName}.txt`), outText));
-    info.raw(doneBox());
-
-    try {
-      info.raw(`\tPDF `);
-      const pdfUrl = await driver
-        .findElement(By.xpath("//a[substring(@href, string-length(@href) - string-length('.pdf') + 1)  = '.pdf']"))
-        .getAttribute("href");
-      !dryRun && (await downloadFile(pdfUrl, path.join(dirpath, `${lessonName}.pdf`)));
+    if (select.includes(TargetsEnum.TXT)) {
+      info.raw(`\tTXT `);
+      const paras = await exercise.findElements(By.xpath("div[position() = 1]/p"));
+      let outText = title + "\n";
+      for (let p of paras) {
+        outText += "\n" + (await p.getText()) + "\n";
+      }
+      !dryRun && (await writeFile(path.join(dirpath, `${lessonName}.txt`), outText));
       info.raw(doneBox());
-    } catch (e) {
-      if (e instanceof error.NoSuchElementError) {
-        info.raw("—");
-      }
+    } else {
+      info.raw(skipBox(`\tTXT `) + skipBox());
     }
 
-    info.raw(`\tMP3 `);
-    try {
-      const audioEls = await exercise.findElements(By.css(".lingua-player > audio"));
-      if (audioEls.length > 0) {
-        const audioSource = await audioEls[0].findElement(By.css("source"));
-        const audioUrl = await audioSource.getAttribute("src");
-        await delay(1000);
-        !dryRun && (await downloadFile(audioUrl, path.join(dirpath, `${lessonName}.mp3`)));
+    if (select.includes(TargetsEnum.PDF)) {
+      info.raw(`\tPDF `);
+      try {
+        const pdfUrl = await driver
+          .findElement(By.xpath("//a[substring(@href, string-length(@href) - string-length('.pdf') + 1)  = '.pdf']"))
+          .getAttribute("href");
+        !dryRun && (await downloadFile(pdfUrl, path.join(dirpath, `${lessonName}.pdf`)));
         info.raw(doneBox());
-      } else {
-        info.raw(premiumBox());
+      } catch (e) {
+        if (e instanceof error.NoSuchElementError) {
+          info.raw(missedBox());
+        }
       }
-    } catch (e) {
-      if (e instanceof error.NoSuchElementError) {
-        info.raw(errBox());
-      } else {
-        throw e;
-      }
+    } else {
+      info.raw(skipBox(`\tPDF `) + skipBox());
     }
+
+    if (select.includes(TargetsEnum.MP3)) {
+      info.raw(`\tMP3 `);
+      try {
+        const audioEls = await exercise.findElements(By.css(".lingua-player > audio"));
+        if (audioEls.length > 0) {
+          const audioSource = await audioEls[0].findElement(By.css("source"));
+          const audioUrl = await audioSource.getAttribute("src");
+          await delay(1000);
+          !dryRun && (await downloadFile(audioUrl, path.join(dirpath, `${lessonName}.mp3`)));
+          info.raw(doneBox());
+        } else {
+          info.raw(premiumBox());
+        }
+      } catch (e) {
+        if (e instanceof error.NoSuchElementError) {
+          info.raw(errBox());
+        } else {
+          throw e;
+        }
+      }
+    } else {
+      info.raw(skipBox(`\tMP3 `) + skipBox());
+    }
+
     info("");
   }
 

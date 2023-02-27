@@ -2,10 +2,10 @@ import yargs from "yargs";
 import { OutOfSync } from "./errors";
 import { fetchLessons } from "./scripts/lessons.script";
 import { listLanguages } from "./scripts/languages.script";
-import { readCredentials } from "./services/credentials.service";
 import { createLogger, Logger } from "./services/logger.service";
 import { createWebDriver } from "./services/webdriver.service";
 import { error } from "selenium-webdriver";
+import { targets } from "./scripts/const";
 
 const DEFAULT_CREDENTIALS_FILEPATH = "lingua-com-secret.json";
 
@@ -50,6 +50,11 @@ export default function app(params: string[]) {
             demandOption: true,
           })
           .options({
+            select: {
+              description: "Select what type of files to download. If omitted, then all files.",
+              type: "array",
+              choices: targets,
+            },
             secret: {
               alias: "s",
               description: "Path to the file with your Lingua.com credentials.",
@@ -71,6 +76,7 @@ export default function app(params: string[]) {
             langTerm: argv.lang,
             outDirpath: argv.path,
             secretFilepath: argv.secret,
+            select: argv.select ?? [...targets],
             logger,
             dryRun: argv.dryRun,
           });

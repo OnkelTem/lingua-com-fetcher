@@ -1,13 +1,21 @@
 import chalk from "chalk";
 
 export function doneBox() {
-  return chalk.greenBright(String.fromCharCode(0x2713)); // ✓
+  return chalk.greenBright("✓");
 }
 
 export function errBox() {
-  return chalk.redBright(String.fromCharCode(0x00d7)); // ×
+  return chalk.redBright("×");
+}
+
+export function missedBox() {
+  return "×";
 }
 
 export function premiumBox(msg?: string) {
-  return chalk.yellowBright(msg || "p"); // ×
+  return chalk.yellowBright(msg || "p");
+}
+
+export function skipBox(msg?: string) {
+  return chalk.gray(msg || "—");
 }

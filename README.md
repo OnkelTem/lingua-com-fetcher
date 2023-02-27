@@ -73,6 +73,18 @@ Fetching lessons...
 ...
 ```
 
+## Selective downloading
+
+If you don't need to download everything, you can use `--select` option to choose what to fetch.
+
+For example, this command:
+
+```
+$ lingua-com-fetcher fetch es outdir --select txt pdf
+```
+
+will skip MP3s and will only download texts and PDFs.
+
 ## Providing Credentials
 
 If you create a file called **lingua-com-secret.json**, it will be used to log you in:
@@ -122,6 +134,8 @@ Positionals:
 Options:
       --help     Show help                                             [boolean]
       --version  Show version number                                   [boolean]
+      --select   Select what type of files to download. If omitted, then all
+                 files.                   [array] [choices: "txt", "pdf", "mp3"]
   -s, --secret   Path to the file with your Lingua.com credentials.
                                     [string] [default: "lingua-com-secret.json"]
       --dryRun   Don't write anything, only show what's gonna be done
