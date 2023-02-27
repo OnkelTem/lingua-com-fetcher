@@ -1,5 +1,7 @@
 # Lingua.com Lessons Fetcher
 
+[![npm](https://img.shields.io/npm/v/lingua-com-fetcher)](https://www.npmjs.com/package/lingua-com-fetcher)
+
 This repository contains a [Selenium](https://www.selenium.dev/) script that
 fetches lessons from the https://lingua.com/ website.
 

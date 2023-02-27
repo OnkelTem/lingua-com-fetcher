@@ -1,5 +1,6 @@
-name: Build, release and publish
+name: Build All
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*.*.*"
@@ -7,35 +8,41 @@ on:
 jobs:
   default:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Using Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
           registry-url: "https://registry.npmjs.org"
-      - name: Installing dependencies
-        run: npm ci
-      - name: Running tests
-        run: npm test
-      - name: Building project
-        run: npm run build
-      - name: Creating npm package for downloading
-        run: npm pack
-      - name: Read package.json version
-        run: echo "version=$(jq -r -c .version package.json)" >> $GITHUB_ENV
-      - name: Read package.json name
+      - name: Read package name
         run: echo "name=$(jq -r -c .name package.json)" >> $GITHUB_ENV
-      - name: Publishing
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Read package version
+        run: echo "version=$(jq -r -c .version package.json)" >> $GITHUB_ENV
+      - name: Instal dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Build project
+        run: npm run build
+      - name: Creating package
+        run: npm pack
+      - name: Create artifact
+        # If no tags given
+        if: ${{ !startsWith(github.event.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.name }}-${{ env.version }}
+          path: ${{ env.name }}-${{ env.version }}.tgz
+      # - name: Publish
+      #   if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
+      #   run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Release
+        if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
         uses: softprops/action-gh-release@v1
         with:
-          body_path: ${{ github.workspace }}/docs/release-notes/${{env.version}}.md
-          files: ${{env.name}}-${{env.version}}.tgz
+          body_path: ${{ github.workspace }}/docs/release-notes/${{ env.version }}.md
+          files: ${{ env.name }}-${{ env.version }}.tgz

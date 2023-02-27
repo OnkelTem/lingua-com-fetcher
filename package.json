@@ -1,6 +1,6 @@
 {
   "name": "lingua-com-fetcher",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.0",
   "description": "Lessons fetcher for lingua.com",
   "keywords": [
     "lignua.com",
@@ -14,10 +14,10 @@
   "bin": "bin/lingua-com-fetcher",
   "scripts": {
     "build": "tsc",
+    "preversion": "npm test",
     "start": "ts-node src/cli.ts",
-    "pretest": "npm run test:typecheck",
-    "test": "echo Tests are not implemented, skipping...",
-    "test:typecheck": "tsc --noEmit",
+    "pretest": "npm run typecheck",
+    "test": "",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
